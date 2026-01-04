@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Derivada interactiva: tangente y secante</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:Roboto,sans-serif;background:#f2f6fb;color:#333;padding:20px;}
+h1{text-align:center;color:#1f3a93;margin-bottom:10px;}
+.container{background:white;max-width:900px;margin:20px auto;padding:20px;border-radius:12px;box-shadow:0 6px 15px rgba(0,0,0,.08);}
+canvas{display:block;margin:15px auto;background:#fff;border:1px solid #ddd;border-radius:8px;}
+.controls{margin-top:10px;}
+label{font-weight:500;color:#1f3a93;display:block;margin-top:10px;}
+input[type=range], input[type=text]{width:100%;padding:5px;font-size:1em;}
+.info{text-align:center;margin-top:12px;font-size:1.05em;}
+.highlight{background:#fff3cd;border-left:6px solid #f1c40f;padding:12px;margin-top:10px;}
+.formula{background:#eaf4ff;padding:15px;border-left:6px solid #3498db;margin-top:15px;font-size:1.1em;}
+.legend{margin-top:10px;text-align:center;font-size:0.95em;}
+.legend span{display:inline-block;padding:5px 12px;margin:2px;border-radius:4px;color:white;font-weight:500;}
+.red{background:#e74c3c;}
+.green{background:#2ecc71;}
+footer{text-align:center;font-size:.85em;margin-top:30px;color:#666;}
+</style>
+</head>
+
+<body>
+<h1>Derivada interactiva: tangente y secante</h1>
+
+<div class="container">
+<p>Escribe tu función <strong>f(x)</strong> y explora cómo se comportan la tangente y la secante. Ajusta <strong>a</strong> y <strong>h</strong> para ver los efectos.</p>
+
+<label>Función f(x):</label>
+<input type="text" id="funcInput" value="x*x">
+
+<canvas id="posCanvas" width="600" height="300"></canvas>
+
+<div class="controls">
+<label>Punto a:</label>
+<input type="range" id="aSlider" min="-3" max="3" step="0.05" value="1">
+
+<label>Incremento h:</label>
+<input type="range" id="hSlider" min="0" max="2" step="0.05" value="1">
+</div>
+
+<div class="info" id="info"></div>
+
+<div class="formula">
+f'(a) = límite cuando h → 0 de [f(a+h) - f(a)] / h
+</div>
+
+<div class="legend">
+<span class="red">tangente (exacta)</span>
+<span class="green">secante (aproximación)</span>
+</div>
+</div>
+
+<footer>© material didáctico – cálculo diferencial</footer>
+
+<script>
+const posCanvas = document.getElementById("posCanvas");
+const ctxPos = posCanvas.getContext("2d");
+
+const aSlider = document.getElementById("aSlider");
+const hSlider = document.getElementById("hSlider");
+const funcInput = document.getElementById("funcInput");
+const info = document.getElementById("info");
+
+const AX = {x0:60,y0:260,x1:560,y1:40};
+
+// Mapeo para graficar
+function mapX(x){ return AX.x0 + (x+3)/6*(AX.x1-AX.x0); }
+function mapY(y){ return AX.y0 - y/10*(AX.y0-AX.y1); }
+
+// Dibuja ejes con nombres claros
+function drawAxes(ctx){
+  ctx.strokeStyle="#000";
+  ctx.beginPath();
+  // eje Y
+  ctx.moveTo(AX.x0,AX.y1);
+  ctx.lineTo(AX.x0,AX.y0);
+  // eje X
+  ctx.lineTo(AX.x1,AX.y0);
+  ctx.stroke();
+  
+  ctx.font="14px Roboto";
+  ctx.fillStyle="#000";
+  // nombre eje X: centrado abajo
+  ctx.fillText("x", (AX.x0 + AX.x1)/2, AX.y0 + 25);
+  // nombre eje Y: al inicio del eje Y
+  ctx.fillText("f(x)", AX.x0 - 40, AX.y1 - 5);
+}
+
+// Evaluar función de forma segura
+function safeEval(f,x){
+  try{
+    return Function("x","return "+f)(x);
+  }catch(e){
+    return NaN;
+  }
+}
+
+function draw(){
+  ctxPos.clearRect(0,0,posCanvas.width,posCanvas.height);
+  drawAxes(ctxPos);
+
+  const fStr = funcInput.value;
+  const a = +aSlider.value;
+  const h = +hSlider.value;
+
+  // Graficar función
+  ctxPos.strokeStyle="blue";
+  ctxPos.beginPath();
+  let first=true;
+  for(let x=-3;x<=3;x+=0.01){
+    const y = safeEval(fStr,x);
+    if(first){ctxPos.moveTo(mapX(x),mapY(y)); first=false;} else ctxPos.lineTo(mapX(x),mapY(y));
+  }
+  ctxPos.stroke();
+
+  const y1 = safeEval(fStr,a);
+  const y2 = safeEval(fStr,a+h);
+
+  const mTan = h !== 0 ? (y2 - y1)/h : 0; 
+  const mExact = (safeEval(fStr,a+0.0001)-safeEval(fStr,a))/0.0001; 
+
+  // Recta secante y punto verde
+  ctxPos.strokeStyle="green";
+  ctxPos.beginPath();
+  if(h!==0){
+    ctxPos.moveTo(mapX(a),mapY(y1));
+    ctxPos.lineTo(mapX(a+h),mapY(y2));
+    ctxPos.stroke();
+    ctxPos.fillStyle="green";
+    ctxPos.beginPath();
+    ctxPos.arc(mapX(a+h),mapY(y2),6,0,Math.PI*2);
+    ctxPos.fill();
+    ctxPos.fillText(`f(a+h)=${y2.toFixed(2)}`, mapX(a+h)+10, mapY(y2)-10);
+  } else {
+    ctxPos.moveTo(mapX(a-0.5),mapY(y1));
+    ctxPos.lineTo(mapX(a+0.5),mapY(y1));
+    ctxPos.stroke();
+    ctxPos.fillStyle="green";
+    ctxPos.beginPath();
+    ctxPos.arc(mapX(a),mapY(y1),6,0,Math.PI*2);
+    ctxPos.fill();
+    ctxPos.fillText(`h=0, secante=tangente`, mapX(a)+10, mapY(y1)-10);
+  }
+
+  // Recta tangente y punto rojo
+  ctxPos.strokeStyle="red";
+  ctxPos.beginPath();
+  for(let x=-3;x<=3;x+=0.01){
+    ctxPos.lineTo(mapX(x), mapY(y1 + mExact*(x-a)));
+  }
+  ctxPos.stroke();
+
+  ctxPos.fillStyle="red";
+  ctxPos.beginPath();
+  ctxPos.arc(mapX(a),mapY(y1),6,0,Math.PI*2);
+  ctxPos.fill();
+  ctxPos.fillText(`a=${a.toFixed(2)}`, mapX(a)+5, mapY(y1)-15);
+
+  // Mensajes de interpretación física
+  if(Math.abs(mExact)<0.01){
+    info.innerHTML = `
+      <div class="highlight">
+      <strong>velocidad instantánea = 0</strong><br>
+      la tangente es horizontal.<br>
+      geométrica: tangente horizontal.<br>
+      física: velocidad nula en este punto.
+      </div>`;
+  } else if(h===0){
+    info.innerHTML = `
+      <div class="highlight">
+      h = 0 → secante coincide con la tangente.<br>
+      interpretación: velocidad instantánea.
+      </div>`;
+  } else {
+    info.innerHTML = `
+      🔴 tangente en a: pendiente f'(a) ≈ ${mExact.toFixed(2)}<br>
+      🟢 secante: pendiente ≈ ${mTan.toFixed(2)}<br>
+      h = ${h.toFixed(2)}
+    `;
+  }
+}
+
+aSlider.oninput = draw;
+hSlider.oninput = draw;
+funcInput.oninput = draw;
+draw();
+</script>
+</body>
+</html>
