@@ -103,6 +103,21 @@ footer{
   margin:40px 0 10px;
 }
 
+/* Botón derivada */
+a.derivada-btn{
+  display:inline-block;
+  padding:12px 25px;
+  background:#1f3a93;
+  color:white;
+  font-weight:500;
+  text-decoration:none;
+  border-radius:8px;
+  transition:0.3s;
+}
+a.derivada-btn:hover{
+  background:#3a5bdc;
+}
+
 /* Responsive */
 @media(max-width:600px){
   .container,.explicacion{padding:15px;}
@@ -268,6 +283,15 @@ i5.innerHTML=`ω = ${m.toFixed(2)} rad/s`;
 }
 ex5(1);
 </script>
+
+<!-- ================= BOTÓN A DERIVADA ================= -->
+<div class="container" style="text-align:center;">
+  <h2>Explora la definición de la derivada</h2>
+  <p>Haz clic para abrir la simulación interactiva donde se muestra la tangente y la secante:</p>
+  <a href="derivada.html" target="_blank" class="derivada-btn">
+    Ir a derivada interactiva
+  </a>
+</div>
 
 <footer>
 © Uriel Rivera-Ortega
