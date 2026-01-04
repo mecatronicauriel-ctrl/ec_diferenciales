@@ -11,7 +11,7 @@
 body{font-family:Roboto,sans-serif;background:#f2f6fb;color:#333;padding:20px;}
 h1{text-align:center;color:#1f3a93;margin-bottom:10px;}
 .container{background:white;max-width:900px;margin:20px auto;padding:20px;border-radius:12px;box-shadow:0 6px 15px rgba(0,0,0,.08);}
-canvas{display:block;margin:15px auto;background:#fff;border:1px solid #ddd;border-radius:8px;}
+canvas{display:block;margin:15px auto;background:#fff;border:1px solid #ddd;border-radius:8px;width:100%;height:auto;max-height:400px;}
 .controls{margin-top:10px;}
 label{font-weight:500;color:#1f3a93;display:block;margin-top:10px;}
 input[type=range], input[type=text]{width:100%;padding:5px;font-size:1em;}
@@ -22,7 +22,17 @@ input[type=range], input[type=text]{width:100%;padding:5px;font-size:1em;}
 .legend span{display:inline-block;padding:5px 12px;margin:2px;border-radius:4px;color:white;font-weight:500;}
 .red{background:#e74c3c;}
 .green{background:#2ecc71;}
-footer{text-align:center;font-size:.85em;margin-top:30px;color:#666;}
+.footer-container{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap; margin-top:30px;}
+.footer-container footer{font-size:.85em;color:#666;}
+.back-btn{padding:10px 20px;background:#1f3a93;color:white;text-decoration:none;border-radius:8px;font-weight:500;transition:0.3s;}
+.back-btn:hover{background:#3a5bdc;}
+
+/* Responsive */
+@media(max-width:600px){
+  h1{font-size:1.5em;}
+  .formula{font-size:1em;}
+  .info{font-size:1em;}
+}
 </style>
 </head>
 
@@ -57,7 +67,10 @@ f'(a) = límite cuando h → 0 de [f(a+h) - f(a)] / h
 </div>
 </div>
 
+<div class="footer-container">
+<a href="index.html" class="back-btn">← Volver al índice</a>
 <footer>© material didáctico – cálculo diferencial</footer>
+</div>
 
 <script>
 const posCanvas = document.getElementById("posCanvas");
@@ -87,9 +100,7 @@ function drawAxes(ctx){
   
   ctx.font="14px Roboto";
   ctx.fillStyle="#000";
-  // nombre eje X: centrado abajo
   ctx.fillText("x", (AX.x0 + AX.x1)/2, AX.y0 + 25);
-  // nombre eje Y: al inicio del eje Y
   ctx.fillText("f(x)", AX.x0 - 40, AX.y1 - 5);
 }
 
