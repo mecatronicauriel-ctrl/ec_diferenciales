@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La derivada como razón de cambio - Mecatrónica</title>
+
+<!-- Fuente moderna -->
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+<style>
+/* Reset básico */
+* {margin:0; padding:0; box-sizing:border-box;}
+
+body{
+  font-family: 'Roboto', sans-serif;
+  background: #f0f4f8;
+  color: #333;
+  padding: 15px;
+}
+
+h1 {
+  color:#1f3a93;
+  text-align:center;
+  margin-bottom:10px;
+}
+
+h2{
+  color:#34495e;
+  margin-bottom:5px;
+}
+
+p{
+  line-height:1.5;
+}
+
+.container, .explicacion{
+  background:white;
+  padding:20px;
+  margin:20px auto;
+  border-radius:12px;
+  max-width:900px;
+  box-shadow:0 6px 15px rgba(0,0,0,0.08);
+}
+
+.explicacion{
+  background:#eaf4ff;
+  border-left:6px solid #3498db;
+}
+
+canvas{
+  width:100%;
+  max-width:650px;
+  height:auto;
+  display:block;
+  margin:15px auto;
+  border:1px solid #ddd;
+  border-radius:8px;
+  background:white;
+  box-shadow: inset 0 0 8px rgba(0,0,0,0.03);
+}
+
+input[type="range"]{
+  width: 100%;
+  margin: 10px 0;
+  -webkit-appearance: none;
+  height: 8px;
+  border-radius: 5px;
+  background: #d1d8e0;
+  outline: none;
+  transition: background 0.3s;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #1f3a93;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #1f3a93;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+
+#i1,#i2,#i3,#i4,#i5{
+  text-align:center;
+  font-weight:500;
+  color:#1f3a93;
+  margin-top:5px;
+}
+
+footer{
+  text-align:center;
+  font-size:.85em;
+  color:#666;
+  margin:40px 0 10px;
+}
+
+/* Responsive */
+@media(max-width:600px){
+  .container,.explicacion{padding:15px;}
+  h1{font-size:1.6em;}
+  h2{font-size:1.2em;}
+}
+</style>
+</head>
+
+<body>
+
+<h1>La derivada como razón de cambio</h1>
+<p style="text-align:center">
+Aplicaciones introductorias para Ingeniería Mecatrónica
+</p>
+
+<div class="explicacion">
+<p><strong>Velocidad negativa:</strong> el sistema cambia en sentido opuesto.</p>
+<p><strong>θ (theta):</strong> posición angular.</p>
+<p><strong>ω (omega):</strong> velocidad angular (ω = dθ/dt).</p>
+</div>
+
+<script>
+const AX={x0:60,y0:260,x1:480,y1:20};
+function mapX(x,xMax){ return AX.x0+(x/xMax)*(AX.x1-AX.x0);}
+function mapY(y,yMax){ return AX.y0-(y/yMax)*(AX.y0-AX.y1);}
+function drawAxes(ctx,xLabel,yLabel,xMax,yMax){
+  ctx.strokeStyle="#000"; ctx.fillStyle="#000"; ctx.font="12px Roboto";
+  ctx.beginPath();
+  ctx.moveTo(AX.x0,AX.y1); ctx.lineTo(AX.x0,AX.y0); ctx.lineTo(AX.x1,AX.y0); ctx.stroke();
+  ctx.fillText(xLabel,AX.x1-40,AX.y0+30);
+  ctx.save(); ctx.translate(20,80); ctx.rotate(-Math.PI/2); ctx.fillText(yLabel,0,0); ctx.restore();
+}
+</script>
+
+<!-- ================= 1. MOVIMIENTO ACELERADO ================= -->
+<div class="container">
+<h2>1. Movimiento rectilíneo (acelerado)</h2>
+<p>x(t)=t²</p>
+<canvas id="c1" width="500" height="300"></canvas>
+<input type="range" id="s1" min="0" max="10" step="0.1" value="2">
+<p id="i1"></p>
+</div>
+
+<script>
+const ctx1=c1.getContext("2d");
+s1.oninput=()=>ex1(+s1.value);
+function ex1(t){
+ctx1.clearRect(0,0,500,300);
+drawAxes(ctx1,"t (s)","x (m)",10,20);
+ctx1.strokeStyle="blue"; ctx1.beginPath();
+for(let x=0;x<=10;x+=0.1){ ctx1.lineTo(mapX(x,10),mapY(x*x/5,20)); } ctx1.stroke();
+let y0=t*t/5,m=2*t/5;
+ctx1.fillStyle="red"; ctx1.beginPath(); ctx1.arc(mapX(t,10),mapY(y0,20),6,0,Math.PI*2); ctx1.fill();
+ctx1.strokeStyle="orange"; ctx1.beginPath();
+for(let dx=-2;dx<=2;dx+=0.1){ ctx1.lineTo(mapX(t+dx,10),mapY(y0+m*dx,20)); } ctx1.stroke();
+i1.innerHTML=`Velocidad = ${m.toFixed(2)} m/s`;
+}
+ex1(2);
+</script>
+
+<!-- ================= 2. VELOCIDAD POR TRAMOS ================= -->
+<div class="container">
+<h2>2. Movimiento con velocidad constante (por tramos)</h2>
+<p>
+v = +2 m/s (0–3 s) &nbsp;|&nbsp; v = 0 (3–6 s) &nbsp;|&nbsp; v = −1.5 m/s (6–10 s)
+</p>
+<canvas id="c2" width="500" height="300"></canvas>
+<input type="range" id="s2" min="0" max="10" step="0.1" value="2">
+<p id="i2"></p>
+</div>
+
+<script>
+const ctx2=c2.getContext("2d");
+s2.oninput=()=>ex2(+s2.value);
+function position(t){ if(t<=3) return 2*t; if(t<=6) return 6; return 6-1.5*(t-6); }
+function velocity(t){ if(t<=3) return 2; if(t<=6) return 0; return -1.5; }
+function ex2(t){
+ctx2.clearRect(0,0,500,300); drawAxes(ctx2,"t (s)","x (m)",10,10);
+ctx2.strokeStyle="blue"; ctx2.beginPath();
+for(let x=0;x<=10;x+=0.1){ ctx2.lineTo(mapX(x,10),mapY(position(x),10)); } ctx2.stroke();
+let y0=position(t), m=velocity(t);
+ctx2.fillStyle= m>0 ? "green" : m<0 ? "red" : "gray";
+ctx2.beginPath(); ctx2.arc(mapX(t,10),mapY(y0,10),6,0,Math.PI*2); ctx2.fill();
+ctx2.strokeStyle="orange"; ctx2.beginPath();
+for(let dx=-1;dx<=1;dx+=0.05){ ctx2.lineTo(mapX(t+dx,10),mapY(y0+m*dx,10)); } ctx2.stroke();
+i2.innerHTML=`Velocidad v = ${m} m/s`;
+}
+ex2(2);
+</script>
+
+<!-- ================= 3. VARIABLE DEL SISTEMA ================= -->
+<div class="container">
+<h2>3. Variable del sistema</h2>
+<p>y(t)=10·e<sup>-0.3t</sup></p>
+<canvas id="c3" width="500" height="300"></canvas>
+<input type="range" id="s3" min="0" max="10" step="0.1" value="2">
+<p id="i3"></p>
+</div>
+
+<script>
+const ctx3=c3.getContext("2d");
+s3.oninput=()=>ex3(+s3.value);
+function ex3(t){
+ctx3.clearRect(0,0,500,300); drawAxes(ctx3,"t (s)","y",10,10);
+ctx3.strokeStyle="green"; ctx3.beginPath();
+for(let x=0;x<=10;x+=0.1){ ctx3.lineTo(mapX(x,10),mapY(10*Math.exp(-0.3*x),10)); } ctx3.stroke();
+let y0=10*Math.exp(-0.3*t),m=-0.3*y0;
+ctx3.fillStyle="red"; ctx3.beginPath(); ctx3.arc(mapX(t,10),mapY(y0,10),6,0,Math.PI*2); ctx3.fill();
+ctx3.strokeStyle="orange"; ctx3.beginPath();
+for(let dx=-2;dx<=2;dx+=0.1){ ctx3.lineTo(mapX(t+dx,10),mapY(y0+m*dx,10)); } ctx3.stroke();
+i3.innerHTML=`Razón de cambio = ${m.toFixed(2)}`;
+}
+ex3(2);
+</script>
+
+<!-- ================= 4. PISTÓN ================= -->
+<div class="container">
+<h2>4. Movimiento de un pistón</h2>
+<p>x(t)=A·sin(ωt)</p>
+<canvas id="c4" width="500" height="300"></canvas>
+<input type="range" id="s4" min="0" max="6.28" step="0.05" value="1">
+<p id="i4"></p>
+</div>
+
+<script>
+const ctx4=c4.getContext("2d");
+s4.oninput=()=>ex4(+s4.value);
+function ex4(t){
+ctx4.clearRect(0,0,500,300); drawAxes(ctx4,"t (s)","x (m)",6.28,12);
+const A=5; ctx4.strokeStyle="blue"; ctx4.beginPath();
+for(let x=0;x<=6.28;x+=0.05){ ctx4.lineTo(mapX(x,6.28),mapY(A*Math.sin(x)+6,12)); } ctx4.stroke();
+let y0=A*Math.sin(t)+6,m=A*Math.cos(t);
+ctx4.fillStyle="red"; ctx4.beginPath(); ctx4.arc(mapX(t,6.28),mapY(y0,12),6,0,Math.PI*2); ctx4.fill();
+ctx4.strokeStyle="orange"; ctx4.beginPath();
+for(let dx=-1;dx<=1;dx+=0.05){ ctx4.lineTo(mapX(t+dx,6.28),mapY(y0+m*dx,12)); } ctx4.stroke();
+i4.innerHTML=`Velocidad del pistón = ${m.toFixed(2)}`;
+}
+ex4(1);
+</script>
+
+<!-- ================= 5. BRAZO ROBÓTICO ================= -->
+<div class="container">
+<h2>5. Brazo robótico</h2>
+<p>θ(t)=sin(t)</p>
+<canvas id="c5" width="500" height="300"></canvas>
+<input type="range" id="s5" min="0" max="6.28" step="0.05" value="1">
+<p id="i5"></p>
+</div>
+
+<script>
+const ctx5=c5.getContext("2d");
+s5.oninput=()=>ex5(+s5.value);
+function ex5(t){
+ctx5.clearRect(0,0,500,300); drawAxes(ctx5,"t (s)","θ (rad)",6.28,3);
+ctx5.strokeStyle="green"; ctx5.beginPath();
+for(let x=0;x<=6.28;x+=0.05){ ctx5.lineTo(mapX(x,6.28),mapY(Math.sin(x)+1.5,3)); } ctx5.stroke();
+let y0=Math.sin(t)+1.5,m=Math.cos(t);
+ctx5.fillStyle="red"; ctx5.beginPath(); ctx5.arc(mapX(t,6.28),mapY(y0,3),6,0,Math.PI*2); ctx5.fill();
+ctx5.strokeStyle="orange"; ctx5.beginPath();
+for(let dx=-1;dx<=1;dx+=0.05){ ctx5.lineTo(mapX(t+dx,6.28),mapY(y0+m*dx,3)); } ctx5.stroke();
+i5.innerHTML=`ω = ${m.toFixed(2)} rad/s`;
+}
+ex5(1);
+</script>
+
+<footer>
+© Uriel Rivera-Ortega
+</footer>
+
+</body>
+</html>
